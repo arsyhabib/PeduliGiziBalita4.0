@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Videos Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-video"></i> Video Edukasi</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="refreshVideos()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-outline-secondary" onclick="toggleLayout()">
+                    <i class="fas fa-th-large"></i> Layout
+                </button>
+            </div>
+        </div>
+        <p class="lead">Kumpulan video edukasi untuk kesehatan dan perkembangan anak</p>
+    </div>
+</div>
+
+<!-- Video Categories -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-filter"></i> Kategori Video</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center category-card" onclick="filterByCategory('kpsp')" style="cursor: pointer;">
+                            <div class="card-body">
+                                <i class="fas fa-clipboard-check" style="font-size: 2rem; color: var(--primary-color);"></i>
+                                <h6 class="mt-2">KPSP</h6>
+                                <small class="text-muted">{{ kpsp_videos|length }} video</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center category-card" onclick="filterByCategory('mpasi')" style="cursor: pointer;">
+                            <div class="card-body">
+                                <i class="fas fa-utensils" style="font-size: 2rem; color: var(--secondary-color);"></i>
+                                <h6 class="mt-2">MP-ASI</h6>
+                                <small class="text-muted">{{ mpasi_videos|length }} video</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center category-card" onclick="filterByCategory('perawatan')" style="cursor: pointer;">
+                            <div class="card-body">
+                                <i class="fas fa-baby" style="font-size: 2rem; color: var(--success-color);"></i>
+                                <h6 class="mt-2">Perawatan</h6>
+                                <small class="text-muted">15 video</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center category-card" onclick="filterByCategory('tumbuh')" style="cursor: pointer;">
+                            <div class="card-body">
+                                <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--warning-color);"></i>
+                                <h6 class="mt-2">Tumbuh Kembang</h6>
+                                <small class="text-muted">12 video</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPSP Videos -->
+<div class="row mb-4" id="kpspSection">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-clipboard-check"></i> Video KPSP</h2>
+            <p class="lead">Panduan lengkap untuk melakukan skrining perkembangan anak dengan KPSP</p>
+            
+            <div class="row">
+                {% for video in kpsp_videos %}
+                <div class="col-md-6 col-lg-4 mb-4 video-item" data-category="kpsp">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">{{ video.title }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-thumbnail mb-3" style="background: #f0f0f0; height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-play-circle" style="font-size: 3rem; color: var(--primary-color);"></i>
+                            </div>
+                            <p class="card-text">{{ video.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ video.duration }}
+                                </small>
+                                <button class="btn btn-primary btn-sm" onclick="playVideo('{{ video.url }}')">
+                                    <i class="fas fa-play"></i> Putar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MP-ASI Videos -->
+<div class="row mb-4" id="mpasiSection">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-utensils"></i> Video MP-ASI</h2>
+            <p class="lead">Panduan pemberian makanan pendamping ASI sesuai usia anak</p>
+            
+            {% for age, videos in mpasi_videos.items() %}
+            <div class="mb-4">
+                <h4 class="text-primary mb-3">Usia {{ age }} Bulan</h4>
+                <div class="row">
+                    {% for video in videos %}
+                    <div class="col-md-6 col-lg-4 mb-4 video-item" data-category="mpasi">
+                        <div class="card h-100">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0">{{ video.title }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="video-thumbnail mb-3" style="background: #f0f0f0; height: 200px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-play-circle" style="font-size: 3rem; color: var(--secondary-color);"></i>
+                                </div>
+                                <p class="card-text">{{ video.description }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> {{ video.duration }}
+                                    </small>
+                                    <button class="btn btn-secondary btn-sm" onclick="playVideo('{{ video.url }}')">
+                                        <i class="fas fa-play"></i> Putar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Featured Videos -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-star"></i> Video Unggulan</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 featured-video">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Panduan Lenggap MP-ASI untuk Bayi 6-12 Bulan</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-thumbnail mb-3" style="background: linear-gradient(135deg, #28a745, #20c997); height: 250px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-play-circle" style="font-size: 4rem; color: white;"></i>
+                            </div>
+                            <p class="card-text">Video komprehensif tentang pemberian MP-ASI yang benar sesuai usia anak, termasuk tekstur, porsi, dan jadwal pemberian.</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> 25:30 menit
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> Dr. dr. Damar Prasmusinto, Sp.A(K)
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success" onclick="playFeaturedVideo('mpasi-guide')">
+                                    <i class="fas fa-play"></i> Tonton Sekarang
+                                </button>
+                                <button class="btn btn-outline-success" onclick="saveVideo('mpasi-guide')">
+                                    <i class="fas fa-bookmark"></i> Simpan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 featured-video">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">Deteksi Dini Perkembangan Anak dengan KPSP</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="video-thumbnail mb-3" style="background: linear-gradient(135deg, #ffc107, #fd7e14); height: 250px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-play-circle" style="font-size: 4rem; color: white;"></i>
+                            </div>
+                            <p class="card-text">Pelajari cara melakukan skrining perkembangan anak menggunakan Kuesioner Pra Skrining Perkembangan (KPSP) dengan benar.</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> 18:45 menit
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> Dr. dr. Mulya Nursyamsi, Sp.A
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-warning" onclick="playFeaturedVideo('kpsp-guide')">
+                                    <i class="fas fa-play"></i> Tonton Sekarang
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="saveVideo('kpsp-guide')">
+                                    <i class="fas fa-bookmark"></i> Simpan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Statistics -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-chart-bar"></i> Statistik Video</h2>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-video" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-primary">{{ kpsp_videos|length + mpasi_videos|length }}</h3>
+                            <p class="text-muted">Total Video</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-eye" style="font-size: 2rem; color: var(--success-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-success">{{ "{:,}".format(15890) }}</h3>
+                            <p class="text-muted">Total Ditonton</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-thumbs-up" style="font-size: 2rem; color: var(--info-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-info">{{ "{:,}".format(2340) }}</h3>
+                            <p class="text-muted">Suka</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-bookmark" style="font-size: 2rem; color: var(--warning-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-warning">{{ "{:,}".format(567) }}</h3>
+                            <p class="text-muted">Disimpan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recently Watched -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Baru Ditonton</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="video-thumbnail-sm" style="width: 80px; height: 60px; background: var(--primary-color); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-play" style="color: white;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">Panduan KPSP untuk Orang Tua</h6>
+                                        <small class="text-muted">10:15 menit • 2 jam yang lalu</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="video-thumbnail-sm" style="width: 80px; height: 60px; background: var(--secondary-color); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-play" style="color: white;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">MP-ASI 6 Bulan Pertama</h6>
+                                        <small class="text-muted">15:00 menit • 1 hari yang lalu</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="video-thumbnail-sm" style="width: 80px; height: 60px; background: var(--success-color); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-play" style="color: white;"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">Cara Menghitung Z-Score</h6>
+                                        <small class="text-muted">8:30 menit • 3 hari yang lalu</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentLayout = 'grid';
+    let currentCategory = 'all';
+
+    // Filter by category
+    function filterByCategory(category) {
+        currentCategory = category;
+        
+        // Update active category
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('border-primary');
+        });
+        event.target.closest('.category-card').classList.add('border-primary');
+        
+        // Show/hide sections
+        if (category === 'all') {
+            document.getElementById('kpspSection').style.display = 'block';
+            document.getElementById('mpasiSection').style.display = 'block';
+        } else if (category === 'kpsp') {
+            document.getElementById('kpspSection').style.display = 'block';
+            document.getElementById('mpasiSection').style.display = 'none';
+        } else if (category === 'mpasi') {
+            document.getElementById('kpspSection').style.display = 'none';
+            document.getElementById('mpasiSection').style.display = 'block';
+        }
+        
+        updateLayout();
+    }
+
+    // Toggle layout
+    function toggleLayout() {
+        currentLayout = currentLayout === 'grid' ? 'list' : 'grid';
+        updateLayout();
+    }
+
+    // Update layout
+    function updateLayout() {
+        const videoItems = document.querySelectorAll('.video-item');
+        
+        videoItems.forEach(item => {
+            if (currentLayout === 'list') {
+                item.className = 'col-12 mb-3 video-item';
+                item.querySelector('.card').classList.add('horizontal-card');
+            } else {
+                item.className = 'col-md-6 col-lg-4 mb-4 video-item';
+                item.querySelector('.card').classList.remove('horizontal-card');
+            }
+        });
+    }
+
+    // Play video
+    function playVideo(url) {
+        // In a real implementation, this would open the video
+        window.open(url, '_blank');
+    }
+
+    // Play featured video
+    function playFeaturedVideo(videoId) {
+        alert(`Memutar video unggulan: ${videoId}`);
+    }
+
+    // Save video
+    function saveVideo(videoId) {
+        alert(`Video berhasil disimpan: ${videoId}`);
+    }
+
+    // Refresh videos
+    function refreshVideos() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Daftar video berhasil diperbarui!');
+        }, 1000);
+    }
+
+    // Add custom CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        .horizontal-card {
+            display: flex;
+            flex-direction: row;
+        }
+        .horizontal-card .video-thumbnail {
+            width: 200px;
+            height: 150px !important;
+            flex-shrink: 0;
+        }
+        .horizontal-card .card-body {
+            flex: 1;
+        }
+        .featured-video {
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 5px 20px rgba(139, 69, 19, 0.2);
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

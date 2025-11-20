@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Library Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-book"></i> Perpustakaan Ibu & Balita</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="refreshLibrary()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-outline-secondary" onclick="toggleView()">
+                    <i class="fas fa-th-large"></i> Grid/List
+                </button>
+            </div>
+        </div>
+        <p class="lead">Kumpulan artikel kesehatan anak yang telah diverifikasi oleh ahli</p>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="searchInput" class="form-label">Cari Artikel</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Masukkan kata kunci...">
+                            <button class="btn btn-primary" onclick="searchArticles()">
+                                <i class="fas fa-search"></i> Cari
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="categoryFilter" class="form-label">Kategori</label>
+                        <select class="form-select" id="categoryFilter" onchange="filterByCategory()">
+                            <option value="">Semua Kategori</option>
+                            <option value="MP-ASI">MP-ASI</option>
+                            <option value="Antropometri">Antropometri</option>
+                            <option value="Perkembangan">Perkembangan</option>
+                            <option value="Gizi">Gizi</option>
+                            <option value="Imunisasi">Imunisasi</option>
+                            <option value="ASI">ASI</option>
+                            <option value="Perawatan">Perawatan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="sortBy" class="form-label">Urutkan</label>
+                        <select class="form-select" id="sortBy" onchange="sortArticles()">
+                            <option value="newest">Terbaru</option>
+                            <option value="oldest">Terlama</option>
+                            <option value="title">Judul A-Z</option>
+                            <option value="author">Penulis</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Articles -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-star"></i> Artikel Unggulan</h2>
+            <div class="row">
+                {% for article in articles[:3] %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 featured-article">
+                        <div class="card-header bg-primary text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-light text-dark">{{ article.kategori }}</span>
+                                {% if article.verified %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Terverifikasi
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ article.judul }}</h5>
+                            <p class="card-text">{{ article.deskripsi }}</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> {{ article.penulis }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ article.durasi_baca }}
+                                </small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ article.tanggal }}
+                                </small>
+                                <a href="{{ article.url }}" target="_blank" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-external-link-alt"></i> Baca
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- All Articles -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Semua Artikel</h5>
+            </div>
+            <div class="card-body">
+                <div id="articlesGrid" class="row">
+                    {% for article in articles %}
+                    <div class="col-md-6 col-lg-4 mb-4 article-item" data-category="{{ article.kategori }}" data-title="{{ article.judul }}" data-author="{{ article.penulis }}" data-date="{{ article.tanggal }}">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge bg-primary">{{ article.kategori }}</span>
+                                    {% if article.verified %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <h6 class="card-title">{{ article.judul }}</h6>
+                                <p class="card-text small">{{ article.deskripsi }}</p>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user"></i> {{ article.penulis }}
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> {{ article.durasi_baca }}
+                                    </small>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> {{ article.tanggal }}
+                                    </small>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="previewArticle('{{ article.judul }}', '{{ article.deskripsi }}', '{{ article.penulis }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="{{ article.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-chart-bar"></i> Statistik Perpustakaan</h2>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-book" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-primary">{{ articles|length }}</h3>
+                            <p class="text-muted">Total Artikel</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-check-circle" style="font-size: 2rem; color: var(--success-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-success">{{ articles|selectattr('verified')|list|length }}</h3>
+                            <p class="text-muted">Terverifikasi</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users" style="font-size: 2rem; color: var(--info-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-info">{{ articles|map(attribute='penulis')|unique|list|length }}</h3>
+                            <p class="text-muted">Penulis</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-eye" style="font-size: 2rem; color: var(--warning-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-warning">{{ "{:,}".format(12567) }}</h3>
+                            <p class="text-muted">Total Dibaca</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let gridView = true;
+    let allArticles = [];
+    let filteredArticles = [];
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        allArticles = Array.from(document.querySelectorAll('.article-item'));
+        filteredArticles = [...allArticles];
+        updateView();
+    });
+
+    // Search articles
+    function searchArticles() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        filteredArticles = allArticles.filter(article => {
+            const title = article.dataset.title.toLowerCase();
+            const author = article.dataset.author.toLowerCase();
+            const category = article.dataset.category.toLowerCase();
+            
+            return title.includes(searchTerm) || 
+                   author.includes(searchTerm) || 
+                   category.includes(searchTerm);
+        });
+
+        updateView();
+        updateStats();
+    }
+
+    // Filter by category
+    function filterByCategory() {
+        const category = document.getElementById('categoryFilter').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        
+        filteredArticles = allArticles.filter(article => {
+            const articleCategory = article.dataset.category;
+            const title = article.dataset.title.toLowerCase();
+            const author = article.dataset.author.toLowerCase();
+            
+            const matchesCategory = !category || articleCategory === category;
+            const matchesSearch = !searchTerm || 
+                                title.includes(searchTerm) || 
+                                author.includes(searchTerm);
+            
+            return matchesCategory && matchesSearch;
+        });
+
+        updateView();
+        updateStats();
+    }
+
+    // Sort articles
+    function sortArticles() {
+        const sortBy = document.getElementById('sortBy').value;
+        
+        filteredArticles.sort((a, b) => {
+            switch(sortBy) {
+                case 'newest':
+                    return new Date(b.dataset.date) - new Date(a.dataset.date);
+                case 'oldest':
+                    return new Date(a.dataset.date) - new Date(b.dataset.date);
+                case 'title':
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                case 'author':
+                    return a.dataset.author.localeCompare(b.dataset.author);
+                default:
+                    return 0;
+            }
+        });
+
+        updateView();
+    }
+
+    // Toggle view between grid and list
+    function toggleView() {
+        gridView = !gridView;
+        updateView();
+    }
+
+    // Update view
+    function updateView() {
+        const container = document.getElementById('articlesGrid');
+        
+        // Clear container
+        container.innerHTML = '';
+        
+        // Add filtered articles
+        filteredArticles.forEach(article => {
+            const clone = article.cloneNode(true);
+            
+            if (gridView) {
+                clone.className = 'col-md-6 col-lg-4 mb-4 article-item';
+            } else {
+                clone.className = 'col-12 mb-3 article-item';
+                clone.querySelector('.card').classList.add('horizontal-card');
+            }
+            
+            container.appendChild(clone);
+        });
+
+        // Show/hide articles based on current filter
+        filteredArticles.forEach(article => {
+            article.style.display = 'block';
+        });
+
+        allArticles.forEach(article => {
+            if (!filteredArticles.includes(article)) {
+                article.style.display = 'none';
+            }
+        });
+    }
+
+    // Preview article
+    function previewArticle(title, description, author) {
+        const modal = document.createElement('div');
+        modal.className = 'modal fade show';
+        modal.style.display = 'block';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Pratinjau Artikel</h5>
+                        <button type="button" class="btn-close" onclick="closeModal(this)"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h4>${title}</h4>
+                        <p class="text-muted">Oleh: ${author}</p>
+                        <hr>
+                        <p>${description}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal(this)">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+
+    // Close modal
+    function closeModal(button) {
+        const modal = button.closest('.modal');
+        modal.remove();
+    }
+
+    // Update statistics
+    function updateStats() {
+        const totalArticles = filteredArticles.length;
+        const verifiedArticles = filteredArticles.filter(article => 
+            article.querySelector('.badge.bg-success')).length;
+        const uniqueAuthors = new Set(filteredArticles.map(article => 
+            article.dataset.author)).size;
+
+        document.querySelector('#totalArticles').textContent = totalArticles;
+        document.querySelector('#verifiedArticles').textContent = verifiedArticles;
+        document.querySelector('#uniqueAuthors').textContent = uniqueAuthors;
+    }
+
+    // Refresh library
+    function refreshLibrary() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Perpustakaan berhasil diperbarui!');
+        }, 1000);
+    }
+
+    // Add custom CSS for horizontal cards
+    const style = document.createElement('style');
+    style.textContent = `
+        .horizontal-card {
+            display: flex;
+            flex-direction: row;
+        }
+        .horizontal-card .card-body {
+            flex: 1;
+        }
+        .featured-article {
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 5px 20px rgba(139, 69, 19, 0.2);
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

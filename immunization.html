@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Immunization Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-syringe"></i> Jadwal Imunisasi</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" onclick="addReminder()">
+                    <i class="fas fa-bell"></i> Tambah Pengingat
+                </button>
+                <button class="btn btn-secondary" onclick="printSchedule()">
+                    <i class="fas fa-print"></i> Cetak
+                </button>
+            </div>
+        </div>
+        <p class="lead">Jadwal imunisasi anak sesuai standar IDAI dan Permenkes RI</p>
+    </div>
+</div>
+
+<!-- Quick Info -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-calendar-check" style="font-size: 2rem; color: var(--success-color);"></i>
+                        <h4 class="text-success mt-2">{{ "{:,}".format(8) }}</h4>
+                        <p class="text-muted">Imunisasi Lengkap</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-clock" style="font-size: 2rem; color: var(--warning-color);"></i>
+                        <h4 class="text-warning mt-2">{{ "{:,}".format(3) }}</h4>
+                        <p class="text-muted">Mendatang</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--danger-color);"></i>
+                        <h4 class="text-danger mt-2">{{ "{:,}".format(1) }}</h4>
+                        <p class="text-muted">Terlambat</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-shield-alt" style="font-size: 2rem; color: var(--info-color);"></i>
+                        <h4 class="text-info mt-2">{{ "{:,}".format(95) }}%</h4>
+                        <p class="text-muted">Proteksi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Immunization Schedule -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Jadwal Imunisasi Lengkap</h5>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" id="ageFilter" onchange="filterByAge()">
+                            <option value="">Semua Usia</option>
+                            <option value="0">0 Bulan</option>
+                            <option value="1">1 Bulan</option>
+                            <option value="2">2 Bulan</option>
+                            <option value="3">3 Bulan</option>
+                            <option value="4">4 Bulan</option>
+                            <option value="9">9 Bulan</option>
+                            <option value="12">12 Bulan</option>
+                            <option value="18">18 Bulan</option>
+                            <option value="24">24 Bulan</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshSchedule()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Usia</th>
+                                <th>Vaksin</th>
+                                <th>Status</th>
+                                <th>Tanggal</th>
+                                <th>Lokasi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="immunizationTable">
+                            {% for age, vaccines in immunization_schedule.items() %}
+                            {% for vaccine in vaccines %}
+                            <tr data-age="{{ age }}">
+                                <td>
+                                    {% if age == 0 %}
+                                        Lahir
+                                    {% else %}
+                                        {{ age }} bulan
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ vaccine }}</span>
+                                </td>
+                                <td>
+                                    {% if age <= 6 %}
+                                        <span class="badge bg-success">Selesai</span>
+                                    {% elif age == 9 %}
+                                        <span class="badge bg-warning">Mendatang</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Belum</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if age <= 6 %}
+                                        15/{{ "%02d"|format(age) }}/2023
+                                    {% elif age == 9 %}
+                                        15/03/2024
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if age <= 9 %}
+                                        Puskesmas Sehat
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if age <= 6 %}
+                                        <button class="btn btn-sm btn-info" onclick="viewCertificate('{{ vaccine }}')">
+                                            <i class="fas fa-certificate"></i>
+                                        </button>
+                                    {% elif age == 9 %}
+                                        <button class="btn btn-sm btn-primary" onclick="scheduleVaccine('{{ vaccine }}', {{ age }})">
+                                            <i class="fas fa-calendar-plus"></i>
+                                        </button>
+                                    {% else %}
+                                        <button class="btn btn-sm btn-secondary" disabled>
+                                            <i class="fas fa-clock"></i>
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Vaccinations -->
+<div class="row mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Imunisasi Mendatang</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-syringe"></i> Campak/MR 1</h6>
+                    <p class="mb-1">Jadwal: 15 Maret 2024</p>
+                    <p class="mb-1">Lokasi: Puskesmas Sehat</p>
+                    <p class="mb-2">Usia: 9 bulan</p>
+                    <button class="btn btn-sm btn-primary" onclick="setReminder('campak-mr1')">
+                        <i class="fas fa-bell"></i> Ingatkan
+                    </button>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-syringe"></i> Campak Booster</h6>
+                    <p class="mb-1">Jadwal: 15 Juni 2024</p>
+                    <p class="mb-1">Lokasi: Puskesmas Sehat</p>
+                    <p class="mb-2">Usia: 12 bulan</p>
+                    <button class="btn btn-sm btn-primary" onclick="setReminder('campak-booster')">
+                        <i class="fas fa-bell"></i> Ingatkan
+                    </button>
+                </div>
+
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-syringe"></i> DPT-HB-Hib Booster</h6>
+                    <p class="mb-1">Jadwal: 15 Desember 2024</p>
+                    <p class="mb-1">Lokasi: Puskesmas Sehat</p>
+                    <p class="mb-2">Usia: 18 bulan</p>
+                    <button class="btn btn-sm btn-primary" onclick="setReminder('dpt-booster')">
+                        <i class="fas fa-bell"></i> Ingatkan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vaccine Information -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informasi Vaksin</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="vaccineInfo">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#campak">
+                                <i class="fas fa-syringe"></i> Campak/MR
+                            </button>
+                        </h2>
+                        <div id="campak" class="accordion-collapse collapse show" data-bs-parent="#vaccineInfo">
+                            <div class="accordion-body">
+                                <p><strong>Fungsi:</strong> Mencegah penyakit campak dan rubella</p>
+                                <p><strong>Jadwal:</strong> 9 bulan dan 18-24 bulan</p>
+                                <p><strong>Efek Samping:</strong> Demam ringan, ruam sederhana</p>
+                                <p><strong>Kontraindikasi:</strong> Alergi berat terhadap komponen vaksin</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dpt">
+                                <i class="fas fa-syringe"></i> DPT-HB-Hib
+                            </button>
+                        </h2>
+                        <div id="dpt" class="accordion-collapse collapse" data-bs-parent="#vaccineInfo">
+                            <div class="accordion-body">
+                                <p><strong>Fungsi:</strong> Mencegah difteri, pertusis, tetanus, hepatitis B, dan Hib</p>
+                                <p><strong>Jadwal:</strong> 2, 3, 4 bulan (dasar) dan 18 bulan (booster)</p>
+                                <p><strong>Efek Samping:</strong> Demam, nyeri di tempat injeksi</p>
+                                <p><strong>Kontraindikasi:</strong> Reaksi berat pada dosis sebelumnya</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#polio">
+                                <i class="fas fa-syringe"></i> Polio
+                            </button>
+                        </h2>
+                        <div id="polio" class="accordion-collapse collapse" data-bs-parent="#vaccineInfo">
+                            <div class="accordion-body">
+                                <p><strong>Fungsi:</strong> Mencegah kelumpuhan akibat polio</p>
+                                <p><strong>Jadwal:</strong> 0, 2, 3, 4 bulan dan booster</p>
+                                <p><strong>Efek Samping:</strong> Sangat jarang, reaksi alergi minimal</p>
+                                <p><strong>Catatan:</strong> Vaksin oral (OPV) dan injeksi (IPV)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Immunization Card -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-id-card"></i> Kartu Imunisasi Digital</h5>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" onclick="generateCard()">
+                            <i class="fas fa-qrcode"></i> Generate QR
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="downloadCard()">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>Data Anak</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nama Anak</label>
+                                <input type="text" class="form-control" value="Aisyah Putri" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tanggal Lahir</label>
+                                <input type="date" class="form-control" value="2023-01-15" readonly>
+                            </div>
+                        </div>
+                        
+                        <h6>Riwayat Imunisasi</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Vaksin</th>
+                                        <th>Tanggal</th>
+                                        <td>Status</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>HB-0</td>
+                                        <td>15/01/2023</td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>BCG</td>
+                                        <td>15/01/2023</td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Polio 1</td>
+                                        <td>15/03/2023</td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>DPT-HB-Hib 1</td>
+                                        <td>15/03/2023</td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div id="qrCode" class="mb-3">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                        </div>
+                        <p class="small text-muted">Scan QR code untuk informasi lengkap</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Filter by age
+    function filterByAge() {
+        const selectedAge = document.getElementById('ageFilter').value;
+        const rows = document.querySelectorAll('#immunizationTable tr');
+        
+        rows.forEach(row => {
+            const age = row.dataset.age;
+            if (!selectedAge || age === selectedAge) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Refresh schedule
+    function refreshSchedule() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Jadwal imunisasi berhasil diperbarui!');
+        }, 1000);
+    }
+
+    // Add reminder
+    function addReminder() {
+        alert('Fitur pengingat akan segera tersedia');
+    }
+
+    // Print schedule
+    function printSchedule() {
+        window.print();
+    }
+
+    // Schedule vaccine
+    function scheduleVaccine(vaccine, age) {
+        alert(`Menjadwalkan vaksin ${vaccine} untuk usia ${age} bulan`);
+    }
+
+    // Set reminder
+    function setReminder(vaccineId) {
+        alert(`Pengingat diatur untuk vaksin: ${vaccineId}`);
+    }
+
+    // View certificate
+    function viewCertificate(vaccine) {
+        alert(`Menampilkan sertifikat untuk vaksin: ${vaccine}`);
+    }
+
+    // Generate QR code
+    function generateCard() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Kartu imunisasi digital berhasil dibuat!');
+        }, 1000);
+    }
+
+    // Download card
+    function downloadCard() {
+        alert('Mengunduh kartu imunisasi...');
+    }
+</script>
+{% endblock %}

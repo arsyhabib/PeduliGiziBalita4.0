@@ -1,0 +1,494 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Growth Tracker Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-chart-area"></i> Pelacak Pertumbuhan</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" onclick="addGrowthData()">
+                    <i class="fas fa-plus"></i> Tambah Data
+                </button>
+                <button class="btn btn-secondary" onclick="exportChart()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Selection -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Pilih Grafik</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <select class="form-select" id="chartType" onchange="updateChart()">
+                            <option value="weight">Berat untuk Usia</option>
+                            <option value="height">Tinggi untuk Usia</option>
+                            <option value="weight-height">Berat untuk Tinggi</option>
+                            <option value="bmi">IMT untuk Usia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <select class="form-select" id="childSelect" onchange="updateChart()">
+                            <option value="all">Semua Anak</option>
+                            <option value="aisyah">Aisyah Putri</option>
+                            <option value="bintang">Bintang Pratama</option>
+                            <option value="citra">Citra Lestari</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <select class="form-select" id="timeRange" onchange="updateChart()">
+                            <option value="3m">3 Bulan Terakhir</option>
+                            <option value="6m">6 Bulan Terakhir</option>
+                            <option value="1y">1 Tahun Terakhir</option>
+                            <option value="all">Semua Data</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-primary w-100" onclick="toggleChartType()">
+                            <i class="fas fa-chart-bar"></i> Toggle Chart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Chart -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-area"></i> Grafik Pertumbuhan</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="zoomIn()">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="zoomOut()">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="resetZoom()">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="growthChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Panel -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-calculator"></i> Statistik</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                            <h4 class="text-primary" id="currentValue">10.5 kg</h4>
+                            <small class="text-muted">Nilai Terakhir</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                            <h4 class="text-success" id="avgValue">9.8 kg</h4>
+                            <small class="text-muted">Rata-rata</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                            <h4 class="text-info" id="minValue">8.2 kg</h4>
+                            <small class="text-muted">Minimum</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="text-center">
+                            <h4 class="text-warning" id="maxValue">12.1 kg</h4>
+                            <small class="text-muted">Maksimum</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Growth Velocity -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tachometer-alt"></i> Kecepatan Tumbuh</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Kecepatan Pertumbuhan</label>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 75%">
+                            Normal (75%)
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h5 class="text-success">Pertumbuhan Optimal</h5>
+                    <p class="small text-muted">Anak tumbuh sesuai standar WHO</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-table"></i> Data Pengukuran</h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" placeholder="Cari data..." id="searchData">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterData()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Usia</th>
+                                <th>Berat</th>
+                                <th>Tinggi</th>
+                                <th>Z-Score</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="measurementTable">
+                            <tr>
+                                <td>2024-01-15</td>
+                                <td>18 bulan</td>
+                                <td>10.5 kg</td>
+                                <td>78 cm</td>
+                                <td>-0.5</td>
+                                <td><span class="badge bg-success">Normal</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="editData(1)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteData(1)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2024-01-01</td>
+                                <td>17 bulan</td>
+                                <td>10.1 kg</td>
+                                <td>76 cm</td>
+                                <td>-0.7</td>
+                                <td><span class="badge bg-success">Normal</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="editData(2)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteData(2)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2023-12-15</td>
+                                <td>16 bulan</td>
+                                <td>9.8 kg</td>
+                                <td>74 cm</td>
+                                <td>-0.9</td>
+                                <td><span class="badge bg-success">Normal</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="editData(3)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteData(3)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comparison Chart -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-balance-scale"></i> Perbandingan dengan Standar WHO</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="comparisonChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let growthChart;
+    let comparisonChart;
+    let currentChartType = 'line';
+
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeGrowthChart();
+        initializeComparisonChart();
+    });
+
+    // Initialize growth chart
+    function initializeGrowthChart() {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        
+        growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+                datasets: [{
+                    label: 'Berat (kg)',
+                    data: [9.8, 10.1, 10.3, 10.5, 10.8],
+                    borderColor: 'rgb(139, 69, 19)',
+                    backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'WHO Standard -2SD',
+                    data: [8.5, 8.7, 8.9, 9.1, 9.3],
+                    borderColor: 'rgb(220, 53, 69)',
+                    borderDash: [5, 5],
+                    fill: false
+                }, {
+                    label: 'WHO Standard +2SD',
+                    data: [12.1, 12.5, 12.9, 13.3, 13.7],
+                    borderColor: 'rgb(220, 53, 69)',
+                    borderDash: [5, 5],
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Grafik Pertumbuhan Anak'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Berat (kg)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Bulan'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Initialize comparison chart
+    function initializeComparisonChart() {
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        
+        comparisonChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024'],
+                datasets: [{
+                    label: 'Data Anak',
+                    data: [10.5, 10.8, 11.2, 11.5],
+                    backgroundColor: 'rgba(139, 69, 19, 0.8)',
+                    borderColor: 'rgb(139, 69, 19)',
+                    borderWidth: 1
+                }, {
+                    label: 'Median WHO',
+                    data: [10.2, 10.6, 11.0, 11.4],
+                    backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                    borderColor: 'rgb(40, 167, 69)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Perbandingan dengan Standar WHO'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Berat (kg)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Update chart based on selections
+    function updateChart() {
+        const chartType = document.getElementById('chartType').value;
+        const child = document.getElementById('childSelect').value;
+        const timeRange = document.getElementById('timeRange').value;
+
+        showLoading();
+        
+        setTimeout(() => {
+            // Simulate data update
+            let newData, newLabels;
+            
+            switch(chartType) {
+                case 'weight':
+                    newData = [9.8, 10.1, 10.3, 10.5, 10.8];
+                    newLabels = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+                    break;
+                case 'height':
+                    newData = [74, 76, 78, 80, 82];
+                    newLabels = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+                    break;
+                case 'weight-height':
+                    newData = [10.5, 10.8, 11.2, 11.5, 11.9];
+                    newLabels = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+                    break;
+                case 'bmi':
+                    newData = [15.2, 15.8, 16.1, 16.5, 16.9];
+                    newLabels = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+                    break;
+            }
+
+            growthChart.data.datasets[0].data = newData;
+            growthChart.data.labels = newLabels;
+            growthChart.update();
+            
+            updateStatistics(newData);
+            hideLoading();
+        }, 1000);
+    }
+
+    // Update statistics
+    function updateStatistics(data) {
+        const current = data[data.length - 1];
+        const avg = data.reduce((a, b) => a + b, 0) / data.length;
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+
+        document.getElementById('currentValue').textContent = current.toFixed(1) + ' kg';
+        document.getElementById('avgValue').textContent = avg.toFixed(1) + ' kg';
+        document.getElementById('minValue').textContent = min.toFixed(1) + ' kg';
+        document.getElementById('maxValue').textContent = max.toFixed(1) + ' kg';
+    }
+
+    // Toggle chart type
+    function toggleChartType() {
+        currentChartType = currentChartType === 'line' ? 'bar' : 'line';
+        
+        growthChart.destroy();
+        
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        growthChart = new Chart(ctx, {
+            type: currentChartType,
+            data: growthChart.data,
+            options: growthChart.options
+        });
+    }
+
+    // Zoom functions
+    function zoomIn() {
+        // Implement zoom in functionality
+        console.log('Zoom in');
+    }
+
+    function zoomOut() {
+        // Implement zoom out functionality
+        console.log('Zoom out');
+    }
+
+    function resetZoom() {
+        // Implement reset zoom functionality
+        console.log('Reset zoom');
+    }
+
+    // Add growth data
+    function addGrowthData() {
+        alert('Fitur tambah data akan segera tersedia');
+    }
+
+    // Export chart
+    function exportChart() {
+        const link = document.createElement('a');
+        link.download = 'growth-chart.png';
+        link.href = growthChart.toBase64Image();
+        link.click();
+    }
+
+    // Filter data
+    function filterData() {
+        const searchTerm = document.getElementById('searchData').value.toLowerCase();
+        const rows = document.querySelectorAll('#measurementTable tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Edit data
+    function editData(id) {
+        alert('Edit data dengan ID: ' + id);
+    }
+
+    // Delete data
+    function deleteData(id) {
+        if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+            alert('Data berhasil dihapus');
+        }
+    }
+</script>
+{% endblock %}
