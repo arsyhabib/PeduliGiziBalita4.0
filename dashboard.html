@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-secondary" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-baby" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 10px;"></i>
+                <h3 class="text-primary" id="totalChildren">{{ "{:,}".format(45) }}</h3>
+                <p class="text-muted">Anak Terdaftar</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--secondary-color); margin-bottom: 10px;"></i>
+                <h3 class="text-secondary" id="totalMeasurements">{{ "{:,}".format(128) }}</h3>
+                <p class="text-muted">Pengukuran</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: var(--warning-color); margin-bottom: 10px;"></i>
+                <h3 class="text-warning" id="alertCount">{{ "{:,}".format(12) }}</h3>
+                <p class="text-muted">Peringatan</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-calendar-check" style="font-size: 2rem; color: var(--success-color); margin-bottom: 10px;"></i>
+                <h3 class="text-success" id="upcomingAppointments">{{ "{:,}".format(8) }}</h3>
+                <p class="text-muted">Janji Mendatang</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard Content -->
+<div class="row">
+    <!-- Growth Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-area"></i> Grafik Pertumbuhan</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-light" onclick="changeChartType('weight')">Berat</button>
+                        <button class="btn btn-sm btn-outline-light" onclick="changeChartType('height')">Tinggi</button>
+                        <button class="btn btn-sm btn-outline-light" onclick="changeChartType('zscore')">Z-Score</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="growthChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt"></i> Aksi Cepat</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('calculator') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Input Data Baru
+                    </a>
+                    <a href="{{ url_for('kpsp') }}" class="btn btn-secondary">
+                        <i class="fas fa-clipboard-check"></i> Skrining KPSP
+                    </a>
+                    <a href="{{ url_for('library') }}" class="btn btn-info">
+                        <i class="fas fa-book"></i> Baca Artikel
+                    </a>
+                    <a href="{{ url_for('immunization') }}" class="btn btn-warning">
+                        <i class="fas fa-syringe"></i> Cek Imunisasi
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Alerts -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Peringatan Terbaru</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <strong><i class="fas fa-calendar"></i> 3 Anak</strong><br>
+                    Perlu pemeriksaan bulanan
+                </div>
+                <div class="alert alert-danger">
+                    <strong><i class="fas fa-exclamation-circle"></i> 2 Anak</strong><br>
+                    Status gizi perhatian khusus
+                </div>
+                <div class="alert alert-info">
+                    <strong><i class="fas fa-syringe"></i> 7 Anak</strong><br>
+                    Jadwal imunisasi mendatang
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Children List -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Daftar Anak</h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" placeholder="Cari anak..." id="searchChild">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterChildren()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Usia</th>
+                                <th>Berat/Tinggi</th>
+                                <th>Z-Score</th>
+                                <th>Status Gizi</th>
+                                <th>Terakhir Update</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="childrenTable">
+                            <tr>
+                                <td><i class="fas fa-baby"></i> Aisyah Putri</td>
+                                <td>18 bulan</td>
+                                <td>10.2 kg / 78 cm</td>
+                                <td>-0.5</td>
+                                <td><span class="status-badge status-normal">Normal</span></td>
+                                <td>2 hari yang lalu</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDetails('aisyah')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="editChild('aisyah')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-baby"></i> Bintang Pratama</td>
+                                <td>24 bulan</td>
+                                <td>12.5 kg / 85 cm</td>
+                                <td>0.2</td>
+                                <td><span class="status-badge status-normal">Normal</span></td>
+                                <td>1 minggu yang lalu</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDetails('bintang')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="editChild('bintang')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-baby"></i> Citra Lestari</td>
+                                <td>15 bulan</td>
+                                <td>8.5 kg / 72 cm</td>
+                                <td>-1.8</td>
+                                <td><span class="status-badge status-warning">Kurang</span></td>
+                                <td>3 hari yang lalu</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDetails('citra')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="editChild('citra')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-baby"></i> Dimas Aditya</td>
+                                <td>30 bulan</td>
+                                <td>15.2 kg / 92 cm</td>
+                                <td>1.5</td>
+                                <td><span class="status-badge status-warning">Berisiko Lebih</span></td>
+                                <td>5 hari yang lalu</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewDetails('dimas')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="editChild('dimas')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Growth Milestones -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-flag"></i> Milestone Perkembangan</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle text-success" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <h6 class="card-title">Tercapai</h6>
+                                <h3 class="text-success">{{ "{:,}".format(32) }}</h3>
+                                <p class="text-muted">Milestone</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="fas fa-clock text-warning" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <h6 class="card-title">Dalam Proses</h6>
+                                <h3 class="text-warning">{{ "{:,}".format(8) }}</h3>
+                                <p class="text-muted">Milestone</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="fas fa-calendar text-info" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <h6 class="card-title">Mendatang</h6>
+                                <h3 class="text-info">{{ "{:,}".format(15) }}</h3>
+                                <p class="text-muted">Milestone</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let growthChart;
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeChart();
+        animateCounters();
+    });
+
+    // Initialize growth chart
+    function initializeChart() {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        
+        growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Berat (kg)',
+                    data: [3.2, 3.8, 4.5, 5.1, 5.8, 6.4],
+                    borderColor: 'rgb(139, 69, 19)',
+                    backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Tinggi (cm)',
+                    data: [50, 52, 55, 58, 61, 64],
+                    borderColor: 'rgb(210, 105, 30)',
+                    backgroundColor: 'rgba(210, 105, 30, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Grafik Pertumbuhan Rata-rata'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Berat (kg)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Tinggi (cm)'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    }
+                }
+            }
+        });
+    }
+
+    // Animate counters
+    function animateCounters() {
+        const counters = [
+            { element: 'totalChildren', target: 45 },
+            { element: 'totalMeasurements', target: 128 },
+            { element: 'alertCount', target: 12 },
+            { element: 'upcomingAppointments', target: 8 }
+        ];
+
+        counters.forEach((counter, index) => {
+            setTimeout(() => {
+                animateCounter(document.getElementById(counter.element), counter.target);
+            }, index * 200);
+        });
+    }
+
+    function animateCounter(element, target) {
+        let current = 0;
+        const increment = target / 100;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            element.textContent = Math.floor(current).toLocaleString();
+        }, 20);
+    }
+
+    // Change chart type
+    function changeChartType(type) {
+        if (growthChart) {
+            // Update chart based on type
+            if (type === 'weight') {
+                growthChart.data.datasets = [{
+                    label: 'Berat (kg)',
+                    data: [3.2, 3.8, 4.5, 5.1, 5.8, 6.4],
+                    borderColor: 'rgb(139, 69, 19)',
+                    backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }];
+                growthChart.options.scales.y.title.text = 'Berat (kg)';
+            } else if (type === 'height') {
+                growthChart.data.datasets = [{
+                    label: 'Tinggi (cm)',
+                    data: [50, 52, 55, 58, 61, 64],
+                    borderColor: 'rgb(210, 105, 30)',
+                    backgroundColor: 'rgba(210, 105, 30, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }];
+                growthChart.options.scales.y.title.text = 'Tinggi (cm)';
+            } else if (type === 'zscore') {
+                growthChart.data.datasets = [{
+                    label: 'Z-Score',
+                    data: [-0.5, -0.3, 0.1, 0.4, 0.7, 0.9],
+                    borderColor: 'rgb(205, 133, 63)',
+                    backgroundColor: 'rgba(205, 133, 63, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }];
+                growthChart.options.scales.y.title.text = 'Z-Score';
+            }
+            growthChart.update();
+        }
+    }
+
+    // Refresh data
+    function refreshData() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            // Simulate data refresh
+            location.reload();
+        }, 1000);
+    }
+
+    // Export data
+    function exportData() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Data berhasil diekspor!');
+        }, 1000);
+    }
+
+    // Filter children
+    function filterChildren() {
+        const searchTerm = document.getElementById('searchChild').value.toLowerCase();
+        const rows = document.querySelectorAll('#childrenTable tr');
+        
+        rows.forEach(row => {
+            const name = row.cells[0].textContent.toLowerCase();
+            if (name.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // View child details
+    function viewDetails(childId) {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Menampilkan detail untuk anak: ' + childId);
+        }, 500);
+    }
+
+    // Edit child data
+    function editChild(childId) {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Edit data untuk anak: ' + childId);
+        }, 500);
+    }
+</script>
+{% endblock %}

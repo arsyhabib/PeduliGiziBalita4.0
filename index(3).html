@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card text-center">
+            <div class="card-body py-5">
+                <i class="fas fa-baby" style="font-size: 4rem; color: var(--primary-color); margin-bottom: 20px;"></i>
+                <h2 class="card-title mb-4">Selamat Datang di PeduliGiziBalita</h2>
+                <p class="card-text lead mb-4">
+                    Aplikasi profesional untuk pemantauan pertumbuhan dan perkembangan anak usia 0-60 bulan 
+                    berdasarkan standar WHO Child Growth Standards 2006 dan Permenkes RI No. 2 Tahun 2020.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{{ url_for('calculator') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-calculator"></i> Mulai Kalkulasi
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-tachometer-alt"></i> Lihat Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Features -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-star"></i> Fitur Unggulan</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 15px;"></i>
+                            <h5 class="card-title">Kalkulator Z-Score WHO</h5>
+                            <p class="card-text">Hitung z-score pertumbuhan anak dengan akurat menggunakan standar WHO terbaru.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clipboard-check" style="font-size: 3rem; color: var(--secondary-color); margin-bottom: 15px;"></i>
+                            <h5 class="card-title">Skrining KPSP</h5>
+                            <p class="card-text">Evaluasi perkembangan anak dengan Kuesioner Pra Skrining Perkembangan (KPSP).</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-book" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 15px;"></i>
+                            <h5 class="card-title">Perpustakaan Edukasi</h5>
+                            <p class="card-text">Akses artikel kesehatan anak yang telah diverifikasi oleh ahli.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-area" style="font-size: 3rem; color: var(--success-color); margin-bottom: 15px;"></i>
+                            <h5 class="card-title">Pelacak Pertumbuhan</h5>
+                            <p class="card-text">Pantau perkembangan anak dengan grafik pertumbuhan interaktif.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-syringe" style="font-size: 3rem; color: var(--warning-color); margin-bottom: 15px;"></i>
+                            <h5 class="card-title">Jadwal Imunisasi</h5>
+                            <p class="card-text">Kelola jadwal imunisasi anak sesuai standar IDAI terbaru.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-file-pdf" style="font-size: 3rem; color: var(--danger-color); margin-bottom: 15px;"></i>
+                            <h5 class="card-title">Laporan PDF</h5>
+                            <p class="card-text">Ekspor hasil pemantauan dalam format PDF profesional.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-chart-bar"></i> Statistik Aplikasi</h2>
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-calculator" style="font-size: 2rem; color: var(--primary-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-primary">{{ "{:,}".format(1250) }}</h3>
+                            <p class="text-muted">Perhitungan Z-Score</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users" style="font-size: 2rem; color: var(--secondary-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-secondary">{{ "{:,}".format(890) }}</h3>
+                            <p class="text-muted">Pengguna Aktif</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-book" style="font-size: 2rem; color: var(--accent-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-warning">{{ articles|length }}</h3>
+                            <p class="text-muted">Artikel Terverifikasi</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-video" style="font-size: 2rem; color: var(--success-color); margin-bottom: 10px;"></i>
+                            <h3 class="text-success">{{ kpsp_videos|length + mpasi_videos|length }}</h3>
+                            <p class="text-muted">Video Edukasi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="section">
+            <h2><i class="fas fa-bolt"></i> Aksi Cepat</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-baby"></i> Input Data Baru</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Masukkan data antropometri anak untuk analisis pertumbuhan.</p>
+                            <a href="{{ url_for('calculator') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Input Data
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-search"></i> Evaluasi Perkembangan</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Lakukan skrining perkembangan anak dengan KPSP.</p>
+                            <a href="{{ url_for('kpsp') }}" class="btn btn-secondary">
+                                <i class="fas fa-play"></i> Mulai Skrining
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Articles -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-newspaper"></i> Artikel Terbaru</h2>
+                <a href="{{ url_for('library') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-right"></i> Lihat Semua
+                </a>
+            </div>
+            <div class="row">
+                {% for article in articles[:6] %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary">{{ article.kategori }}</span>
+                                {% if article.verified %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Terverifikasi
+                                </span>
+                                {% endif %}
+                            </div>
+                            <h5 class="card-title">{{ article.judul }}</h5>
+                            <p class="card-text">{{ article.deskripsi }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i> {{ article.penulis }}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ article.durasi_baca }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ article.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-external-link-alt"></i> Baca Artikel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Information -->
+<div class="row">
+    <div class="col-12">
+        <div class="section text-center">
+            <h2><i class="fas fa-phone"></i> Butuh Bantuan?</h2>
+            <p class="lead">Hubungi tim support kami untuk bantuan teknis atau konsultasi kesehatan anak.</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="https://wa.me/{{ contact_wa }}" target="_blank" class="btn btn-success btn-lg">
+                    <i class="fab fa-whatsapp"></i> WhatsApp Support
+                </a>
+                <a href="mailto:support@peduligizibalita.id" class="btn btn-primary btn-lg">
+                    <i class="fas fa-envelope"></i> Email Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add smooth counter animation
+    function animateCounter(element, target) {
+        let current = 0;
+        const increment = target / 100;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            element.textContent = Math.floor(current).toLocaleString();
+        }, 20);
+    }
+
+    // Initialize counter animations when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const counters = document.querySelectorAll('h3.text-primary, h3.text-secondary, h3.text-warning, h3.text-success');
+        counters.forEach((counter, index) => {
+            const targets = [1250, 890, {{ articles|length }}, {{ kpsp_videos|length + mpasi_videos|length }}];
+            setTimeout(() => {
+                animateCounter(counter, targets[index]);
+            }, index * 200);
+        });
+    });
+</script>
+{% endblock %}

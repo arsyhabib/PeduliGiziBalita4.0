@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Calculator Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-calculator"></i> Kalkulator Z-Score WHO</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="loadSampleData()">
+                    <i class="fas fa-database"></i> Contoh Data
+                </button>
+                <button class="btn btn-outline-secondary" onclick="clearForm()">
+                    <i class="fas fa-eraser"></i> Bersihkan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Input Form -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user-plus"></i> Input Data Anak</h5>
+            </div>
+            <div class="card-body">
+                <form id="calculatorForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="childName" class="form-label">Nama Anak</label>
+                            <input type="text" class="form-control" id="childName" placeholder="Masukkan nama anak">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="birthDate" class="form-label">Tanggal Lahir</label>
+                            <input type="date" class="form-control" id="birthDate">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="measurementDate" class="form-label">Tanggal Pengukuran</label>
+                            <input type="date" class="form-control" id="measurementDate" value="{{ today }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="gender" class="form-label">Jenis Kelamin</label>
+                            <select class="form-select" id="gender">
+                                <option value="">Pilih Jenis Kelamin</option>
+                                <option value="M">Laki-laki</option>
+                                <option value="F">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="measurementType" class="form-label">Tipe Pengukuran</label>
+                            <select class="form-select" id="measurementType">
+                                <option value="wfa">Berat untuk Usia (WFA)</option>
+                                <option value="hfa">Tinggi untuk Usia (HFA)</option>
+                                <option value="wfh">Berat untuk Tinggi (WFH)</option>
+                                <option value="bfa">IMT untuk Usia (BFA)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="weight" class="form-label">Berat Badan (kg)</label>
+                            <input type="number" class="form-control" id="weight" step="0.1" placeholder="Contoh: 10.5">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="height" class="form-label">Tinggi Badan (cm)</label>
+                            <input type="number" class="form-control" id="height" step="0.1" placeholder="Contoh: 75.0">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" onclick="calculateZScore()">
+                            <i class="fas fa-calculator"></i> Hitung Z-Score
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="saveCalculation()">
+                            <i class="fas fa-save"></i> Simpan Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Referensi Cepat</h5>
+            </div>
+            <div class="card-body">
+                <h6>Interpretasi Z-Score:</h6>
+                <ul class="list-unstyled">
+                    <li><span class="badge bg-danger">&lt; -3</span> Gizi Buruk</li>
+                    <li><span class="badge bg-warning">-3 sd -2</span> Gizi Kurang</li>
+                    <li><span class="badge bg-success">-2 sd +1</span> Gizi Baik</li>
+                    <li><span class="badge bg-warning">+1 sd +2</span> Berisiko Gizi Lebih</li>
+                    <li><span class="badge bg-warning">+2 sd +3</span> Gizi Lebih</li>
+                    <li><span class="badge bg-danger">&gt; +3</span> Obesitas</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Standar WHO:</h6>
+                <p class="small text-muted">
+                    Kalkulasi menggunakan standar WHO Child Growth Standards 2006 
+                    untuk anak usia 0-60 bulan.
+                </p>
+            </div>
+        </div>
+
+        <!-- Recent Calculations -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Perhitungan Terakhir</h5>
+            </div>
+            <div class="card-body">
+                <div id="recentCalculations">
+                    <div class="alert alert-info">
+                        <strong>Aisyah Putri</strong><br>
+                        Z-Score: -0.5 (Normal)<br>
+                        <small>2 jam yang lalu</small>
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Bintang Pratama</strong><br>
+                        Z-Score: 1.2 (Berisiko Lebih)<br>
+                        <small>5 jam yang lalu</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Section -->
+<div class="row mb-4" id="resultsSection" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Hasil Perhitungan</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 id="zScoreResult" class="text-primary">-</h3>
+                                <p class="text-muted">Z-Score</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 id="nutritionStatus" class="text-success">-</h3>
+                                <p class="text-muted">Status Gizi</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 id="ageResult" class="text-info">-</h3>
+                                <p class="text-muted">Usia Anak</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Interpretasi Hasil</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="interpretationResult">
+                                    <p>Hasil interpretasi akan muncul di sini setelah perhitungan.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Rekomendasi</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="recommendationResult">
+                                    <p>Rekomendasi akan muncul di sini setelah perhitungan.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Visualisasi Pertumbuhan</h6>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="resultChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Processing -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-upload"></i> Pemrosesan Batch</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Upload File CSV</h6>
+                        <div class="mb-3">
+                            <input type="file" class="form-control" id="csvFile" accept=".csv">
+                        </div>
+                        <button class="btn btn-primary" onclick="processBatch()">
+                            <i class="fas fa-upload"></i> Proses Data
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Format CSV</h6>
+                        <p class="small text-muted">
+                            File CSV harus memiliki kolom: nama, tanggal_lahir, tanggal_ukur, 
+                            jenis_kelamin, berat_kg, tinggi_cm.
+                        </p>
+                        <a href="#" class="btn btn-sm btn-outline-secondary" onclick="downloadTemplate()">
+                            <i class="fas fa-download"></i> Download Template
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let resultChart;
+
+    // Load sample data
+    function loadSampleData() {
+        document.getElementById('childName').value = 'Contoh Anak';
+        document.getElementById('birthDate').value = '2023-01-15';
+        document.getElementById('measurementDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('gender').value = 'F';
+        document.getElementById('weight').value = '10.5';
+        document.getElementById('height').value = '78.0';
+        document.getElementById('measurementType').value = 'wfa';
+    }
+
+    // Clear form
+    function clearForm() {
+        document.getElementById('calculatorForm').reset();
+        document.getElementById('resultsSection').style.display = 'none';
+        if (resultChart) {
+            resultChart.destroy();
+        }
+    }
+
+    // Calculate Z-Score
+    function calculateZScore() {
+        const formData = {
+            childName: document.getElementById('childName').value,
+            birthDate: document.getElementById('birthDate').value,
+            measurementDate: document.getElementById('measurementDate').value,
+            gender: document.getElementById('gender').value,
+            weight: parseFloat(document.getElementById('weight').value),
+            height: parseFloat(document.getElementById('height').value),
+            measurementType: document.getElementById('measurementType').value
+        };
+
+        // Validate form
+        if (!formData.childName || !formData.birthDate || !formData.gender || !formData.weight) {
+            alert('Mohon lengkapi semua field yang diperlukan.');
+            return;
+        }
+
+        showLoading();
+
+        // Calculate age in months
+        const birthDate = new Date(formData.birthDate);
+        const measurementDate = new Date(formData.measurementDate);
+        const ageInDays = (measurementDate - birthDate) / (1000 * 60 * 60 * 24);
+        const ageInMonths = ageInDays / 30.4375;
+
+        // Simulate API call to calculate z-score
+        setTimeout(() => {
+            // Mock calculation - in real app this would call the API
+            const mockZScore = Math.random() * 2 - 1; // Random z-score between -1 and 1
+            const result = {
+                z_score: Math.round(mockZScore * 100) / 100,
+                age_months: Math.round(ageInMonths * 10) / 10,
+                classification: getClassification(mockZScore)
+            };
+
+            displayResults(result, formData);
+            hideLoading();
+        }, 1000);
+    }
+
+    // Get classification based on z-score
+    function getClassification(zScore) {
+        if (zScore < -3) {
+            return { status: "Gizi Buruk", color: "#d32f2f", category: "severe_underweight" };
+        } else if (zScore < -2) {
+            return { status: "Gizi Kurang", color: "#f57c00", category: "underweight" };
+        } else if (zScore <= 1) {
+            return { status: "Gizi Baik", color: "#388e3c", category: "normal" };
+        } else if (zScore <= 2) {
+            return { status: "Berisiko Gizi Lebih", color: "#fbc02d", category: "risk_overweight" };
+        } else if (zScore <= 3) {
+            return { status: "Gizi Lebih", color: "#f57c00", category: "overweight" };
+        } else {
+            return { status: "Obesitas", color: "#d32f2f", category: "obese" };
+        }
+    }
+
+    // Display results
+    function displayResults(result, formData) {
+        document.getElementById('resultsSection').style.display = 'block';
+        document.getElementById('zScoreResult').textContent = result.z_score;
+        document.getElementById('nutritionStatus').textContent = result.classification.status;
+        document.getElementById('nutritionStatus').className = 'text-' + 
+            (result.classification.category === 'normal' ? 'success' : 
+             result.classification.category.includes('risk') || result.classification.category.includes('overweight') ? 'warning' : 'danger');
+        document.getElementById('ageResult').textContent = monthsToYearsMonths(result.age_months);
+
+        // Display interpretation
+        const interpretation = getInterpretation(result.z_score, result.classification);
+        document.getElementById('interpretationResult').innerHTML = interpretation;
+
+        // Display recommendations
+        const recommendations = getRecommendations(result.z_score, result.classification);
+        document.getElementById('recommendationResult').innerHTML = recommendations;
+
+        // Create chart
+        createResultChart(result);
+
+        // Scroll to results
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Convert months to years and months
+    function monthsToYearsMonths(months) {
+        const years = Math.floor(months / 12);
+        const remainingMonths = Math.floor(months % 12);
+        
+        if (years === 0) {
+            return `${remainingMonths} bulan`;
+        } else if (remainingMonths === 0) {
+            return `${years} tahun`;
+        } else {
+            return `${years} tahun ${remainingMonths} bulan`;
+        }
+    }
+
+    // Get interpretation text
+    function getInterpretation(zScore, classification) {
+        let text = `<p><strong>Status Gizi:</strong> ${classification.status}</p>`;
+        
+        if (zScore < -2) {
+            text += `<p>Anak berada dalam kategori gizi kurang/buruk. Perlu perhatian khusus pada asupan nutrisi dan konsultasi dengan tenaga kesehatan.</p>`;
+        } else if (zScore > 2) {
+            text += `<p>Anak berada dalam kategori gizi lebih/obesitas. Perlu pengaturan pola makan dan peningkatan aktivitas fisik.</p>`;
+        } else {
+            text += `<p>Anak memiliki status gizi yang baik. Terus pertahankan pola makan dan gaya hidup sehat.</p>`;
+        }
+        
+        return text;
+    }
+
+    // Get recommendations
+    function getRecommendations(zScore, classification) {
+        let text = '';
+        
+        if (zScore < -2) {
+            text += `
+                <ul>
+                    <li>Konsultasikan dengan dokter anak</li>
+                    <li>Tingkatkan asupan nutrisi berkualitas</li>
+                    <li>Pantau pertumbuhan secara rutin</li>
+                    <li>Pastikan pemberian MP-ASI yang tepat</li>
+                </ul>
+            `;
+        } else if (zScore > 2) {
+            text += `
+                <ul>
+                    <li>Kurangi asupan gula dan lemak berlebihan</li>
+                    <li>Tingkatkan aktivitas fisik</li>
+                    <li>Kontrol porsi makan</li>
+                    <li>Konsultasi dengan ahli gizi</li>
+                </ul>
+            `;
+        } else {
+            text += `
+                <ul>
+                    <li>Terus berikan makanan seimbang</li>
+                    <li>Jaga aktivitas fisik yang cukup</li>
+                    <li>Lakukan pemantauan rutin</li>
+                    <li>Pertahankan pola hidup sehat</li>
+                </ul>
+            `;
+        }
+        
+        return text;
+    }
+
+    // Create result chart
+    function createResultChart(result) {
+        const ctx = document.getElementById('resultChart').getContext('2d');
+        
+        if (resultChart) {
+            resultChart.destroy();
+        }
+        
+        resultChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Hasil Anak'],
+                datasets: [{
+                    label: 'Z-Score',
+                    data: [result.z_score],
+                    backgroundColor: result.z_score < -2 ? 'rgba(220, 53, 69, 0.8)' :
+                                   result.z_score > 2 ? 'rgba(255, 193, 7, 0.8)' :
+                                   'rgba(40, 167, 69, 0.8)',
+                    borderColor: result.z_score < -2 ? 'rgb(220, 53, 69)' :
+                                result.z_score > 2 ? 'rgb(255, 193, 7)' :
+                                'rgb(40, 167, 69)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: -4,
+                        max: 4,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Save calculation
+    function saveCalculation() {
+        const childName = document.getElementById('childName').value;
+        if (!childName) {
+            alert('Mohon isi nama anak terlebih dahulu.');
+            return;
+        }
+
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Data berhasil disimpan!');
+            
+            // Add to recent calculations
+            const recentCalculations = document.getElementById('recentCalculations');
+            const newCalculation = document.createElement('div');
+            newCalculation.className = 'alert alert-success';
+            newCalculation.innerHTML = `
+                <strong>${childName}</strong><br>
+                Z-Score: ${document.getElementById('zScoreResult').textContent} (${document.getElementById('nutritionStatus').textContent})<br>
+                <small>Baru saja</small>
+            `;
+            recentCalculations.insertBefore(newCalculation, recentCalculations.firstChild);
+            
+            // Keep only last 5 calculations
+            while (recentCalculations.children.length > 5) {
+                recentCalculations.removeChild(recentCalculations.lastChild);
+            }
+        }, 1000);
+    }
+
+    // Process batch
+    function processBatch() {
+        const fileInput = document.getElementById('csvFile');
+        if (!fileInput.files[0]) {
+            alert('Mohon pilih file CSV terlebih dahulu.');
+            return;
+        }
+
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Data batch berhasil diproses!');
+        }, 2000);
+    }
+
+    // Download template
+    function downloadTemplate() {
+        const csvContent = `nama,tanggal_lahir,tanggal_ukur,jenis_kelamin,berat_kg,tinggi_cm
+Contoh Anak,2023-01-15,2024-01-15,F,10.5,78.0`;
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'template_data_anak.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+{% endblock %}

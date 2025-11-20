@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- KPSP Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1><i class="fas fa-clipboard-check"></i> Skrining KPSP</h1>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" onclick="loadSampleKPSP()">
+                    <i class="fas fa-database"></i> Contoh Data
+                </button>
+                <button class="btn btn-outline-secondary" onclick="resetKPSP()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
+        </div>
+        <p class="lead">Kuesioner Pra Skrining Perkembangan (KPSP) untuk anak usia 0-24 bulan</p>
+    </div>
+</div>
+
+<!-- Information Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informasi KPSP</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Tujuan KPSP:</h6>
+                        <ul>
+                            <li>Deteksi dini hambatan perkembangan anak</li>
+                            <li>Penilaian kemampuan anak sesuai usia</li>
+                            <li>Monitoring tumbuh kembang anak</li>
+                            <li>Intervensi dini jika diperlukan</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Cara Pengisian:</h6>
+                        <ul>
+                            <li>Isi data anak dengan benar</li>
+                            <li>Pilih usia anak yang sesuai</li>
+                            <li>Jawab semua pertanyaan dengan jujur</li>
+                            <li>Amati anak dalam kondisi tenang</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Child Information Form -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user"></i> Data Anak</h5>
+            </div>
+            <div class="card-body">
+                <form id="kpspForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="kpspChildName" class="form-label">Nama Anak</label>
+                            <input type="text" class="form-control" id="kpspChildName" placeholder="Masukkan nama anak">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="kpspAge" class="form-label">Usia Anak (bulan)</label>
+                            <select class="form-select" id="kpspAge" onchange="loadKPSPQuestions()">
+                                <option value="">Pilih Usia</option>
+                                <option value="3">3 Bulan</option>
+                                <option value="6">6 Bulan</option>
+                                <option value="9">9 Bulan</option>
+                                <option value="12">12 Bulan</option>
+                                <option value="15">15 Bulan</option>
+                                <option value="18">18 Bulan</option>
+                                <option value="21">21 Bulan</option>
+                                <option value="24">24 Bulan</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Statistik</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <h3 class="text-primary" id="totalAssessments">{{ "{:,}".format(234) }}</h3>
+                    <p class="text-muted">Total Penilaian</p>
+                </div>
+                <div class="row">
+                    <div class="col-6 text-center">
+                        <h4 class="text-success" id="normalCount">{{ "{:,}".format(189) }}</h4>
+                        <small class="text-muted">Normal</small>
+                    </div>
+                    <div class="col-6 text-center">
+                        <h4 class="text-warning" id="delayedCount">{{ "{:,}".format(45) }}</h4>
+                        <small class="text-muted">Terlambat</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPSP Questions -->
+<div class="row mb-4" id="questionsSection" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-question-circle"></i> Pertanyaan KPSP</h5>
+            </div>
+            <div class="card-body">
+                <div id="kpspQuestions">
+                    <!-- Questions will be loaded here -->
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-secondary" onclick="previousQuestion()">
+                        <i class="fas fa-arrow-left"></i> Sebelumnya
+                    </button>
+                    <button class="btn btn-primary" onclick="evaluateKPSP()">
+                        <i class="fas fa-check"></i> Evaluasi Hasil
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Section -->
+<div class="row mb-4" id="resultsSection" style="display: none;">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Hasil Evaluasi KPSP</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 id="kpspScore" class="text-primary">-</h3>
+                                <p class="text-muted">Skor KPSP</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 id="kpspResult" class="text-success">-</h3>
+                                <p class="text-muted">Hasil Evaluasi</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 id="kpspAgeGroup" class="text-info">-</h3>
+                                <p class="text-muted">Kelompok Usia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Interpretasi Hasil</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="kpspInterpretation">
+                                    <p>Interpretasi hasil akan muncul di sini setelah evaluasi.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Rekomendasi Lanjutan</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="kpspRecommendations">
+                                    <p>Rekomendasi akan muncul di sini setelah evaluasi.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-primary" onclick="saveKPSPResult()">
+                                <i class="fas fa-save"></i> Simpan Hasil
+                            </button>
+                            <button class="btn btn-secondary" onclick="printKPSPResult()">
+                                <i class="fas fa-print"></i> Cetak Hasil
+                            </button>
+                            <button class="btn btn-info" onclick="shareKPSPResult()">
+                                <i class="fas fa-share"></i> Bagikan
+                            </button>
+                            <button class="btn btn-success" onclick="newAssessment()">
+                                <i class="fas fa-plus"></i> Penilaian Baru
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Riwayat Penilaian</h5>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" placeholder="Cari anak..." id="searchHistory">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterHistory()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nama Anak</th>
+                                <th>Usia</th>
+                                <th>Skor</th>
+                                <th>Hasil</th>
+                                <th>Tanggal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable">
+                            <tr>
+                                <td>Aisyah Putri</td>
+                                <td>18 bulan</td>
+                                <td>5/5</td>
+                                <td><span class="badge bg-success">Normal</span></td>
+                                <td>2024-01-15</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewKPSPDetail('aisyah')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="exportKPSP('aisyah')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Bintang Pratama</td>
+                                <td>24 bulan</td>
+                                <td>4/5</td>
+                                <td><span class="badge bg-warning">Terduga Terlambat</span></td>
+                                <td>2024-01-14</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewKPSPDetail('bintang')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="exportKPSP('bintang')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Citra Lestari</td>
+                                <td>15 bulan</td>
+                                <td>5/5</td>
+                                <td><span class="badge bg-success">Normal</span></td>
+                                <td>2024-01-13</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="viewKPSPDetail('citra')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="exportKPSP('citra')">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentQuestions = [];
+    let currentAnswers = [];
+    let currentAgeGroup = null;
+
+    // Load sample KPSP data
+    function loadSampleKPSP() {
+        document.getElementById('kpspChildName').value = 'Contoh Anak';
+        document.getElementById('kpspAge').value = '12';
+        loadKPSPQuestions();
+    }
+
+    // Reset KPSP form
+    function resetKPSP() {
+        document.getElementById('kpspForm').reset();
+        document.getElementById('questionsSection').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'none';
+        currentQuestions = [];
+        currentAnswers = [];
+        currentAgeGroup = null;
+    }
+
+    // Load KPSP questions based on age
+    function loadKPSPQuestions() {
+        const age = document.getElementById('kpspAge').value;
+        const childName = document.getElementById('kpspChildName').value;
+        
+        if (!age) {
+            alert('Mohon pilih usia anak terlebih dahulu.');
+            return;
+        }
+
+        if (!childName) {
+            alert('Mohon isi nama anak terlebih dahulu.');
+            return;
+        }
+
+        showLoading();
+
+        // Simulate loading questions from server
+        setTimeout(() => {
+            currentAgeGroup = parseInt(age);
+            
+            // Mock questions based on age group
+            const questions = getQuestionsForAge(currentAgeGroup);
+            currentQuestions = questions;
+            currentAnswers = new Array(questions.length).fill(null);
+
+            displayQuestions(questions);
+            document.getElementById('questionsSection').style.display = 'block';
+            document.getElementById('questionsSection').scrollIntoView({ behavior: 'smooth' });
+            
+            hideLoading();
+        }, 500);
+    }
+
+    // Get questions for specific age
+    function getQuestionsForAge(age) {
+        const questionSets = {
+            3: [
+                "Apakah anak dapat mengangkat kepalanya 45° saat tengkurap?",
+                "Apakah anak tersenyum saat diajak bicara atau tersenyum sendiri?",
+                "Apakah anak mengeluarkan suara-suara (mengoceh)?",
+                "Apakah anak dapat menatap dan mengikuti wajah ibu/pengasuh?",
+                "Apakah anak berusaha meraih benda atau mainan yang ditunjukkan?"
+            ],
+            6: [
+                "Apakah anak dapat duduk dengan bantuan (bersandar)?",
+                "Apakah anak dapat memindahkan mainan dari tangan satu ke tangan lain?",
+                "Apakah anak mengeluarkan suara vokal seperti 'a-u-o'?",
+                "Apakah anak tertawa keras saat bermain atau diajak bercanda?",
+                "Apakah anak mengenal orang asing (tampak malu atau marah)?"
+            ],
+            9: [
+                "Apakah anak dapat duduk sendiri tanpa bantuan minimal 1 menit?",
+                "Apakah anak dapat merangkak maju (bukan mundur)?",
+                "Apakah anak mengucapkan 'mama' atau 'papa' (meski berlebihan)?",
+                "Apakah anak dapat meraih benda kecil dengan jempol dan telunjuk?",
+                "Apakah anak dapat menirukan gerakan tepuk tangan?"
+            ],
+            12: [
+                "Apakah anak dapat berdiri sendiri minimal 5 detik tanpa berpegangan?",
+                "Apakah anak dapat berjalan berpegangan pada furniture?",
+                "Apakah anak dapat mengucapkan 2-3 kata yang bermakna?",
+                "Apakah anak dapat minum dari cangkir sendiri?",
+                "Apakah anak dapat menunjuk benda yang diinginkannya?"
+            ],
+            15: [
+                "Apakah anak dapat berjalan sendiri dengan stabil minimal 5 langkah?",
+                "Apakah anak dapat minum dari gelas tanpa tumpah?",
+                "Apakah anak dapat mengucapkan 4-6 kata dengan jelas?",
+                "Apakah anak dapat menumpuk 2 kubus dengan stabil?",
+                "Apakah anak dapat membantu melepas sepatunya sendiri?"
+            ],
+            18: [
+                "Apakah anak dapat berlari minimal 5 langkah berturut-turut?",
+                "Apakah anak dapat naik tangga dengan bantuan pegangan?",
+                "Apakah anak dapat mengucapkan 10-15 kata yang berbeda?",
+                "Apakah anak dapat makan sendiri dengan sendok?",
+                "Apakah anak dapat menunjuk minimal 2 bagian tubuhnya?"
+            ],
+            21: [
+                "Apakah anak dapat menendang bola ke depan tanpa jatuh?",
+                "Apakah anak dapat naik tangga dengan 1 kaki bergantian?",
+                "Apakah anak dapat mengucapkan kalimat 2-3 kata?",
+                "Apakah anak dapat membalik halaman buku satu per satu?",
+                "Apakah anak dapat mengikuti perintah sederhana 2 tahap?"
+            ],
+            24: [
+                "Apakah anak dapat melompat dengan 2 kaki bersamaan?",
+                "Apakah anak dapat naik-turun tangga tanpa pegangan?",
+                "Apakah anak dapat membuat kalimat 3-4 kata yang runtut?",
+                "Apakah anak dapat menggambar garis vertikal setelah dicontohkan?",
+                "Apakah anak dapat mengikuti perintah kompleks 3 tahap?"
+            ]
+        };
+
+        return questionSets[age] || [];
+    }
+
+    // Display questions
+    function displayQuestions(questions) {
+        const container = document.getElementById('kpspQuestions');
+        container.innerHTML = '';
+
+        questions.forEach((question, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-4 p-3 border rounded';
+            
+            questionDiv.innerHTML = `
+                <h6>Pertanyaan ${index + 1}</h6>
+                <p class="mb-3">${question}</p>
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="question${index}" id="yes${index}" value="true" onchange="updateAnswer(${index}, true)">
+                    <label class="btn btn-outline-success" for="yes${index}">
+                        <i class="fas fa-check"></i> Ya
+                    </label>
+                    
+                    <input type="radio" class="btn-check" name="question${index}" id="no${index}" value="false" onchange="updateAnswer(${index}, false)">
+                    <label class="btn btn-outline-danger" for="no${index}">
+                        <i class="fas fa-times"></i> Tidak
+                    </label>
+                </div>
+            `;
+            
+            container.appendChild(questionDiv);
+        });
+    }
+
+    // Update answer
+    function updateAnswer(index, value) {
+        currentAnswers[index] = value;
+    }
+
+    // Evaluate KPSP
+    function evaluateKPSP() {
+        if (currentAnswers.includes(null)) {
+            alert('Mohon jawab semua pertanyaan terlebih dahulu.');
+            return;
+        }
+
+        showLoading();
+
+        setTimeout(() => {
+            const score = currentAnswers.filter(answer => answer === true).length;
+            const totalQuestions = currentQuestions.length;
+            const percentage = (score / totalQuestions) * 100;
+
+            let result, color, recommendations;
+
+            if (percentage >= 80) {
+                result = "Perkembangan Sesuai Usia";
+                color = "success";
+                recommendations = [
+                    "Pertumbuhan dan perkembangan anak sesuai usia",
+                    "Terus berikan stimulasi yang sesuai",
+                    "Lakukan pemantauan rutin",
+                    "Konsultasikan dengan tenaga kesehatan jika ada kekhawatiran"
+                ];
+            } else if (percentage >= 60) {
+                result = "Perkembangan Terduga Terlambat";
+                color = "warning";
+                recommendations = [
+                    "Perlu stimulasi intensif",
+                    "Lakukan pemantauan lebih lanjut",
+                    "Konsultasikan dengan dokter anak",
+                    "Pertimbangkan intervensi dini"
+                ];
+            } else {
+                result = "Perkembangan Terlambat";
+                color = "danger";
+                recommendations = [
+                    "Segera konsultasikan dengan dokter anak",
+                    "Evaluasi lebih lanjut diperlukan",
+                    "Intervensi dini sangat penting",
+                    "Lakukan terapi sesuai kebutuhan"
+                ];
+            }
+
+            displayResults(score, totalQuestions, result, color, recommendations);
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+            
+            hideLoading();
+        }, 1000);
+    }
+
+    // Display results
+    function displayResults(score, total, result, color, recommendations) {
+        document.getElementById('kpspScore').textContent = `${score}/${total}`;
+        document.getElementById('kpspResult').textContent = result;
+        document.getElementById('kpspResult').className = `text-${color}`;
+        document.getElementById('kpspAgeGroup').textContent = `${currentAgeGroup} Bulan`;
+
+        // Display interpretation
+        const interpretation = `
+            <p><strong>Skor:</strong> ${score} dari ${total} pertanyaan (${Math.round((score/total)*100)}%)</p>
+            <p><strong>Hasil:</strong> <span class="badge bg-${color}">${result}</span></p>
+            <p>Hasil ini menunjukkan perkembangan anak sesuai dengan usia dan milestone yang seharusnya tercapai.</p>
+        `;
+        document.getElementById('kpspInterpretation').innerHTML = interpretation;
+
+        // Display recommendations
+        const recList = recommendations.map(rec => `<li>${rec}</li>`).join('');
+        document.getElementById('kpspRecommendations').innerHTML = `<ul>${recList}</ul>`;
+    }
+
+    // Save KPSP result
+    function saveKPSPResult() {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Hasil KPSP berhasil disimpan!');
+        }, 1000);
+    }
+
+    // Print KPSP result
+    function printKPSPResult() {
+        window.print();
+    }
+
+    // Share KPSP result
+    function shareKPSPResult() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Hasil KPSP - PeduliGiziBalita',
+                text: 'Hasil skrining perkembangan anak',
+                url: window.location.href
+            });
+        } else {
+            alert('Fitur berbagi tidak tersedia di browser ini.');
+        }
+    }
+
+    // New assessment
+    function newAssessment() {
+        resetKPSP();
+        document.getElementById('kpspChildName').focus();
+    }
+
+    // Filter history
+    function filterHistory() {
+        const searchTerm = document.getElementById('searchHistory').value.toLowerCase();
+        const rows = document.querySelectorAll('#historyTable tr');
+        
+        rows.forEach(row => {
+            const name = row.cells[0].textContent.toLowerCase();
+            if (name.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // View KPSP detail
+    function viewKPSPDetail(childId) {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Menampilkan detail KPSP untuk: ' + childId);
+        }, 500);
+    }
+
+    // Export KPSP
+    function exportKPSP(childId) {
+        showLoading();
+        setTimeout(() => {
+            hideLoading();
+            alert('Mengekspor data KPSP untuk: ' + childId);
+        }, 500);
+    }
+</script>
+{% endblock %}
