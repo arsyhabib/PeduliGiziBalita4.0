@@ -1,0 +1,97 @@
+# ═══════════════════════════════════════════════════════════════════
+# requirements.txt for PeduliGiziBalita v3.3 - Flask Edition
+# Production-ready dependencies for Python 3.10.13
+# Tested and compatible with Render deployment
+# ═══════════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────────
+# WEB FRAMEWORK
+# ───────────────────────────────────────────────────────────────────
+
+# Flask - Web framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+
+# WSGI Server
+Gunicorn==21.2.0
+
+# ───────────────────────────────────────────────────────────────────
+# SCIENTIFIC COMPUTING & NUMERICAL ANALYSIS
+# ───────────────────────────────────────────────────────────────────
+
+# NumPy - Fundamental package for numerical computing
+numpy==1.26.4
+
+# SciPy - Scientific computing library (for erf function in z-score)
+scipy==1.14.1
+
+# Pandas - Data manipulation and analysis
+pandas==2.2.3
+
+# ───────────────────────────────────────────────────────────────────
+# DATA VISUALIZATION
+# ───────────────────────────────────────────────────────────────────
+
+# Matplotlib - Plotting library for growth charts
+matplotlib==3.9.2
+
+# Seaborn - Statistical data visualization (optional but useful)
+seaborn==0.13.2
+
+# ───────────────────────────────────────────────────────────────────
+# IMAGE PROCESSING
+# ───────────────────────────────────────────────────────────────────
+
+# Pillow - Python Imaging Library for image operations
+Pillow==11.0.0
+
+# QRCode - QR code generation for reports
+qrcode[pil]==8.0
+
+# ───────────────────────────────────────────────────────────────────
+# PDF GENERATION
+# ───────────────────────────────────────────────────────────────────
+
+# ReportLab - PDF generation library
+reportlab==4.2.5
+
+# ───────────────────────────────────────────────────────────────────
+# HTTP CLIENT & API REQUESTS
+# ───────────────────────────────────────────────────────────────────
+
+# Requests - HTTP library for Python
+requests==2.32.3
+
+# ───────────────────────────────────────────────────────────────────
+# WHO GROWTH CALCULATOR
+# ───────────────────────────────────────────────────────────────────
+
+# pygrowup - WHO Child Growth Standards calculator
+# Note: This should be installed from local directory or specific source
+# pygrowup==0.7.3
+
+# ───────────────────────────────────────────────────────────────────
+# OPTIONAL BUT RECOMMENDED FOR PRODUCTION
+# ───────────────────────────────────────────────────────────────────
+
+# Python-dotenv - Load environment variables from .env file
+python-dotenv==1.0.1
+
+# ───────────────────────────────────────────────────────────────────
+# NOTES:
+# ───────────────────────────────────────────────────────────────────
+# 
+# 1. All versions are TESTED and COMPATIBLE with Python 3.10.13
+# 
+# 2. These versions work on Render.com free tier
+# 
+# 3. For WHO calculator (pygrowup), ensure the package is available
+#    in the project directory or install from the provided source
+# 
+# 4. To install: pip install -r requirements.txt
+# 
+# 5. For development, you may also want to install:
+#    - pytest (for testing)
+#    - black (for code formatting)
+#    - flake8 (for linting)
+# ═══════════════════════════════════════════════════════════════════
